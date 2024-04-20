@@ -17,4 +17,13 @@ app.use(express.static("public"))    //general data on server
 app.use(cookieParser())     //data except from cookies of website
 
 
+// routes import 
+
+import userRouter from './routes/user.routes.js'
+
+//routes declaration
+
+app.use("/users",userRouter)
+
+
 export { app }
