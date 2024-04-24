@@ -31,7 +31,7 @@ const userSchema = new Schema(
         },
         coverImage: {
             type: String,   //cloudinary image url
-            required: true
+            // required: true    //cover image is optional this was the bug
         },
         watchHistory: [
             {

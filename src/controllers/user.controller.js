@@ -42,7 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
     } else {
         coverImageLocalPath = "";
     }
-
+    
     const avatar = await uploadOnCloudinary(avatarLocalPath);
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
