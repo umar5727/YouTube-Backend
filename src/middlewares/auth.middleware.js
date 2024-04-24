@@ -8,7 +8,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     try {
         //getting the access token from the user cookies or by ('header'-> for mobile user)
         const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer', '')
-        if (!accessToken) {
+        if (!token) {
             throw new ApiError(401, 'unAuthorize requrest')
         }
         //verifying the accesstoken by token secret 

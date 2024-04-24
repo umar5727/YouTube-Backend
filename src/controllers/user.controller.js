@@ -93,12 +93,14 @@ const loginUser = asyncHandler(async (req, res, next) => {
     // getting data from form
     const { email, userName, password } = req.body
     // checking if the required field is empty
-    if (!email || !userName && !password) {
+    if (!(email || userName)) {
         throw new ApiError(400, "all fields required")
     }
     // checking the user in database
     const existedUser = await User.findOne(
-        $or[{ email }, { userName }]
+        {
+            $or: [{ email }, { userName }]
+        }
     )
 
     if (!existedUser) {
@@ -113,7 +115,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
     const { accessToken, refreshToken } = await genereateAccessAndRefreshToken(existedUser._id)
 
     //getting the user from db without password and refresh token
-    const logedInUser = User.findById(existedUser._id).select(--password, --refreshToken)
+    const logedInUser = await User.findById(existedUser._id).select("--password --refreshToken")
 
 
     const options = {            //by the optioncookies can only be modifyed by server only
@@ -123,8 +125,8 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
     return res
         .status(200)
-        .cookie('accessToken', accessToken)
-        .cookie('refreshToken', refreshToken)
+        .cookie('accessToken', accessToken, options)
+        .cookie('refreshToken', refreshToken, options)
         .json(
             new ApiResponse(
                 200,
