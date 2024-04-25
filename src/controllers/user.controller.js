@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
+
 // generating access and refresh tokens
 const genereateAccessAndRefreshToken = async (userId) => {
     const existedUser = await User.findById(userId);
@@ -206,4 +207,33 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     }
 })
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken }
+const changePassword = asyncHandler(async (req, res, next) => {
+    //getting old password and new password from req.body
+    const { oldPassword, newPassword } = req.body
+    //getting user details from db
+    const user = await User.findById(req.user?._id)
+    //checking old password is correct in db 
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "password is incorrect")
+    }
+
+    user.password = newPassword
+    await user.save({ validateBeforeSave: false })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, {}, "Password change successfully")
+        )
+
+})
+const currentUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, req.user, "user fetch successfully")
+        )
+})
+
+export { registerUser, loginUser, logOutUser, refreshAccessToken, changePassword, currentUser }
