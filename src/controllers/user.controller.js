@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 // generating access and refresh tokens
@@ -320,8 +321,9 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 })
 
 
-// aggrigation pipeline
+// aggregation pipeline
 
+//pipeline for channel subscribed and subscribers
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { userName } = req.params // getting user from url
 
@@ -385,4 +387,52 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         )
 })
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken, changePassword, currentUser, updateAccount, updateAvatar, updateCoverImage, getUserChannelProfile }
+//pipeline for watch history
+const getwatchHistory = asyncHandler(async (req, res) => {
+    const user = User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user?._id)
+            },
+            $lookup: {
+                from: "Video",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "video",
+                            localField: "owner",
+                            foreignField: "_id",
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner"
+                            }
+                        }
+                    }
+
+
+                ]
+            }
+        }
+    ])
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0].watchHistory,
+                'watch history fetched successfully'
+            )
+        )
+
+})
+
+
+//
+export { registerUser, loginUser, logOutUser, refreshAccessToken, changePassword, currentUser, updateAccount, updateAvatar, updateCoverImage, getUserChannelProfile, getwatchHistory }
