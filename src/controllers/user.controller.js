@@ -325,16 +325,16 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 //pipeline for channel subscribed and subscribers
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-    const { userName } = req.params // getting user from url
+    const { username } = req.params // getting user from url
 
-    if (!userName) {
+    if (!username) {
         throw new ApiError(401, 'username not found')
     }
 
     const channel = await User.aggregate(
         {
             $match: {       //$match- find all the userName matched 'subscription model'
-                userName: userName?.toLowerCase()
+                userName: username?.toLowerCase()
             },
             $lookup: {          // lookes in subscription model perticular channel name
                 from: "subscription",
