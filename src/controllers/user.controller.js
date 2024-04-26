@@ -163,7 +163,7 @@ const logOutUser = asyncHandler(async (req, res, next) => {
             new ApiResponse(200, '', 'User Logged Out')
         )
 })
-
+// refreshing the token
 const refreshAccessToken = asyncHandler(async (req, res, next) => {
     const incommingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
     if (!incommingRefreshToken) {
@@ -206,7 +206,7 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
         throw new ApiError(401, error?.message || "Token invalid")
     }
 })
-
+//change password
 const changePassword = asyncHandler(async (req, res, next) => {
     //getting old password and new password from req.body
     const { oldPassword, newPassword } = req.body
@@ -228,6 +228,7 @@ const changePassword = asyncHandler(async (req, res, next) => {
         )
 
 })
+//geting current user
 const currentUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
@@ -235,5 +236,96 @@ const currentUser = asyncHandler(async (req, res) => {
             new ApiResponse(200, req.user, "user fetch successfully")
         )
 })
+// update fullName or email
+const updateAccount = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body
+    if (!(fullName || email)) {
+        throw new ApiError(401, 'field required')
+    }
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken, changePassword, currentUser }
+    const user = await User.findByIdAndUpdate(
+        req.body.user?._id,
+        {
+            $set: {
+                fullName,
+                email
+            }
+        },
+        {
+            new: true
+        }
+    ).select("--password")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, 'changes updated successfully')
+        )
+})
+// update avatar 
+const updateAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path
+
+    if (!avatarLocalPath) {
+        throw new ApiError(401, 'file not found')
+    }
+    const avatar = uploadOnCloudinary(avatarLocalPath)
+    if (!avatar.url) {
+        throw new ApiError(500, 'unable to upload on cloudinary')
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                avatar: avatar.url
+            }
+        },
+        { new: true }
+    ).select("--password")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, 'avatar updated successfully')
+        )
+})
+// update coverImage 
+const updateCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req.file?.path
+
+    if (!coverImageLocalPath) {
+        throw new ApiError(401, 'file not found')
+    }
+    const coverImage = uploadOnCloudinary(coverImageLocalPath)
+    if (!coverImage.url) {
+        throw new ApiError(500, 'unable to upload on cloudinary')
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                coverImage: coverImage.url
+            }
+        },
+        { new: true }
+    ).select("--password")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, 'coverImage updated successfully')
+        )
+})
+
+
+// aggrigation pipeline
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+    const { userName } = req.params // getting user from url
+
+
+})
+
+export { registerUser, loginUser, logOutUser, refreshAccessToken, changePassword, currentUser, updateAccount, updateAvatar, updateCoverImage }
